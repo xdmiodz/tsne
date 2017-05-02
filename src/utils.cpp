@@ -6,8 +6,7 @@ arma::mat calculate_pairwise_distances(const arma::mat& points) {
 
     arma::mat pairwise_distances(
         number_of_points,
-        number_of_points,
-        arma::fill::zeros);
+        number_of_points);
 
     for (size_t n_row = 0; n_row < number_of_points; ++n_row) {
         for (size_t n_col = 0; n_col < n_row; ++n_col) {

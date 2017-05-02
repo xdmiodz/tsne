@@ -15,15 +15,13 @@ arma::mat calculate_tsne_gradient(
         % arma::sqrt(map_pairwise_distances) / (1 + map_pairwise_distances);
 
     arma::mat grad(n_points, n_dimensions, arma::fill::zeros);
-
     for (size_t point_idx = 0; point_idx < n_points; ++point_idx) {
         for (size_t neighbour_idx = 0; neighbour_idx < n_points; ++neighbour_idx) {
             if (neighbour_idx == point_idx) {
                 continue;
             }
-            arma::rowvec diff = map_points.row(point_idx) - map_points.row(neighbour_idx);
 
-            grad.row(point_idx) += grad_coeffs(point_idx, neighbour_idx) * diff;
+            grad.row(point_idx) += grad_coeffs(point_idx, neighbour_idx) * (map_points.row(point_idx) - map_points.row(neighbour_idx));
         }
     }
 
@@ -51,8 +49,7 @@ arma::mat run_tsne_optimization(
         arma::mat map_points,
         const size_t max_iterations,
         const double eps,
-        const double learning_rate,
-        const double momentum
+        const double learning_rate
     ) {
 
     const auto image_pairwise_distances = calculate_pairwise_distances(image_points);
@@ -71,6 +68,7 @@ arma::mat run_tsne_optimization(
     while (iteration_number < max_iterations && !is_gradient_close(grad)) {
         map_points -= learning_rate * grad;
         grad = calculate_tsne_gradient(image_similarities, map_points);
+        iteration_number++;
     }
 
     return map_points;
