@@ -48,7 +48,7 @@ arma::mat run_tsne_optimization(
         const arma::mat& image_points,
         arma::mat initial_map_points,
         double perplexity=30,
-        const size_t max_iterations=3000,
+        const size_t max_iterations=5000,
         const double eps=1e-6,
         double learning_rate=100
     );

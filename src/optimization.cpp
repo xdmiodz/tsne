@@ -96,7 +96,7 @@ arma::mat run_tsne_optimization(
         }
 
         if (iteration_number % 500 == 0 && iteration_number > 0) {
-            learning_rate /= 1.5;
+            learning_rate /= 1.2;
         }
 
         if (iteration_number == 20) {
