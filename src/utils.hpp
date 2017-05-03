@@ -58,11 +58,11 @@ arma::mat calcualate_tstudent_condition_similarity(
  * @brief      Calculates the entropy for given point.
  *
  * @param[in]  distances   Distances to the neighbors for a point, excluding itself
- * @param[in]  sigma       Sigma value
+ * @param[in]  beta        Inversed square of gaussian sigma
  *
  * @return     The perplexity value
  */
-double calculate_entropy(arma::rowvec distances, const double sigma);
+double calculate_entropy(arma::rowvec distances, const double beta);
 
 
 /**

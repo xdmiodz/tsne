@@ -16,16 +16,15 @@ int main(int argc, char const *argv[]) {
     double learning_rate = 100;
     double eps = 1e-9;
     size_t map_points_dimension = 2;
-    size_t max_iterations = 1000;
+    double perplexity = 10;
+
 
     desc.add_options()
         ("help,h", "Show help")
         ("image-file,i", po::value<std::string>(&image_file), "A file with image points")
         ("map-file,o", po::value<std::string>(&map_file), "A file where map points will be stored")
-        ("learning-rate,l", po::value<double>(&learning_rate), "Learning rate value of gradient descent")
-        ("eps,e", po::value<double>(&eps), "Maximum realtive error of gradient")
         ("dimension,d", po::value<size_t>(&map_points_dimension), "Mapping space dimension")
-        ("max-iterations", po::value<size_t>(&max_iterations), "Maximum number of iterations")
+        ("perplexity,p", po::value<double>(&perplexity), "Perplexity of image distribution")
     ;
 
     po::variables_map vm;
@@ -55,11 +54,8 @@ int main(int argc, char const *argv[]) {
 
     std::cout << "Running tSNE algorithm" << std::endl;
 
-    std::cout << "Initial KL loss " << calculate_loss(image_points, map_points) << std::endl;
     map_points = run_tsne_optimization(image_points, map_points,
-        max_iterations, eps, learning_rate);
-
-    std::cout << "Resulting KL loss " << calculate_loss(image_points, map_points) << std::endl;
+        perplexity);
 
     if (vm.count("map-file") > 0) {
         map_points.save(map_file, arma::raw_ascii);

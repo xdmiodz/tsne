@@ -76,17 +76,14 @@ arma::mat calcualate_tstudent_condition_similarity(
         similarites.row(n_row) /= norm;
     }
 
-    return similarites;
+    return (similarites + similarites.t()) / (2 * number_of_points);
 }
 
-double calculate_entropy(arma::rowvec distances, const double sigma) {
-    double sigma2 = 2 * sigma * sigma;
-    distances /= sigma2;
-
-    arma::rowvec similarites = arma::exp(-distances);
+double calculate_entropy(arma::rowvec distances, const double beta) {
+    arma::rowvec similarites = arma::exp(-distances * beta);
     double norm = arma::sum(similarites);
 
-    double entropy = std::log(norm) + arma::sum(distances % similarites) / norm / sigma2;
+    double entropy = std::log(norm) + beta * arma::sum(distances % similarites) / norm;
     return entropy;
 }
 
@@ -134,6 +131,8 @@ arma::vec calculate_optimal_sigma(const arma::mat image_points,
         }
         sigma(n_point) = current_sigma;
     }
+
+    sigma = 1 / arma::sqrt(sigma);
 
     return sigma;
 }

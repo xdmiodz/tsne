@@ -22,18 +22,21 @@ arma::mat calculate_tsne_gradient(
  *
  * @param[in]  image_points  NxD array The image points
  * @param[in]  map_points    NxM array The map points
+ * @param[in]  sigma         N vector of sigma values
  *
  * @return     double The value of the KL logarithm for the points.
  */
 double calculate_loss(
         const arma::mat& image_points,
-        const arma::mat& map_points);
+        const arma::mat& map_points,
+        const arma::vec& sigma);
 
 /**
  * @brief      Optimiz KL logarithm using the momentum gradient descent
  *
  * @param[in]  image_points        NxD array The image points
  * @param[in]  initial_map_points  NxM The initial map points
+ * @param[in]  perplexity          Perplexity of image distribution
  * @param[in]  max_iterations      The maximum number of optimization steps
  * @param[in]  eps                 The relative error of gradient: ||grad_k||^2 <= eps * ||grad_0||^2
  * @param[in]  learning_rate       The learning rate
@@ -44,7 +47,8 @@ double calculate_loss(
 arma::mat run_tsne_optimization(
         const arma::mat& image_points,
         arma::mat initial_map_points,
-        const size_t max_iterations=1000,
+        double perplexity=30,
+        const size_t max_iterations=3000,
         const double eps=1e-6,
         double learning_rate=100
     );

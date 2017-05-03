@@ -21,7 +21,8 @@ arma::mat calculate_tsne_gradient(
                 continue;
             }
 
-            grad.row(point_idx) += grad_coeffs(point_idx, neighbour_idx) * (map_points.row(point_idx) - map_points.row(neighbour_idx));
+            grad.row(point_idx) += grad_coeffs(point_idx, neighbour_idx) * \
+                (map_points.row(point_idx) - map_points.row(neighbour_idx));
         }
     }
 
@@ -30,12 +31,13 @@ arma::mat calculate_tsne_gradient(
 
 double calculate_loss(
         const arma::mat& image_points,
-        const arma::mat& map_points
+        const arma::mat& map_points,
+        const arma::vec& sigma
     ) {
 
     const auto image_pairwise_distances = calculate_pairwise_distances(image_points);
     const auto image_similarities = \
-        calcualate_gaussian_condition_similarity_constant_sigma(image_pairwise_distances, 11);
+        calcualate_gaussian_condition_similarity(image_pairwise_distances, sigma);
 
     const auto map_pairwise_distances = calculate_pairwise_distances(map_points);
     const auto map_similarities = \
@@ -47,6 +49,7 @@ double calculate_loss(
 arma::mat run_tsne_optimization(
         const arma::mat& image_points,
         arma::mat map_points,
+        const double perplexity,
         const size_t max_iterations,
         const double eps,
         double learning_rate
@@ -54,10 +57,14 @@ arma::mat run_tsne_optimization(
 
     const auto image_pairwise_distances = calculate_pairwise_distances(image_points);
 
-    arma::vec sigma =  calculate_optimal_sigma(image_points, 30);
+    std::cout << "Calculating optimal sigma" << std::endl;
+    arma::vec sigma =  calculate_optimal_sigma(image_points, perplexity);
 
-    const auto image_similarities = \
-        calcualate_gaussian_condition_similarity(image_pairwise_distances, sigma);
+    std::cout << "Initial KL loss " << calculate_loss(image_points, map_points, sigma) << std::endl;
+
+    // multiply it by 4 according to original paper
+    arma::mat image_similarities = \
+        4 * calcualate_gaussian_condition_similarity(image_pairwise_distances, sigma);
 
     double momentum = 0.5;
 
@@ -79,17 +86,27 @@ arma::mat run_tsne_optimization(
 
         grad = calculate_tsne_gradient(image_similarities, map_points);
 
-        iteration_number++;
-
         if ((iteration_number % 100) == 0 && (iteration_number > 0)) {
-            // learning_rate /= 1.;
-            std::cout << "loss: " << calculate_loss(image_points, map_points) << std::endl;
+            std::cout << "KL loss: " << calculate_loss(image_points, map_points, sigma) << std::endl;
         }
 
-        if (iteration_number > 250) {
+        if (iteration_number == 100) {
+            // stop lying about image distribution
+            image_similarities /= 4.;
+        }
+
+        if (iteration_number % 500 == 0 && iteration_number > 0) {
+            learning_rate /= 1.5;
+        }
+
+        if (iteration_number == 20) {
             momentum = 0.8;
         }
+
+        iteration_number++;
     }
+
+    std::cout << "Resulting KL loss " << calculate_loss(image_points, map_points, sigma) << std::endl;
 
     return map_points;
 }
