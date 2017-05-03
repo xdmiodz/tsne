@@ -13,8 +13,8 @@ int main(int argc, char const *argv[]) {
 
     std::string image_file;
     std::string map_file;
-    double learning_rate = 0.9;
-    double eps = 1e-5;
+    double learning_rate = 100;
+    double eps = 1e-9;
     size_t map_points_dimension = 2;
     size_t max_iterations = 1000;
 

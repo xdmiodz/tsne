@@ -35,7 +35,7 @@ double calculate_loss(
 
     const auto image_pairwise_distances = calculate_pairwise_distances(image_points);
     const auto image_similarities = \
-        calcualate_gaussian_condition_similarity_constant_sigma(image_pairwise_distances, 10);
+        calcualate_gaussian_condition_similarity_constant_sigma(image_pairwise_distances, 11);
 
     const auto map_pairwise_distances = calculate_pairwise_distances(map_points);
     const auto map_similarities = \
@@ -49,13 +49,17 @@ arma::mat run_tsne_optimization(
         arma::mat map_points,
         const size_t max_iterations,
         const double eps,
-        const double learning_rate
+        double learning_rate
     ) {
 
     const auto image_pairwise_distances = calculate_pairwise_distances(image_points);
-    const auto image_similarities = \
-        calcualate_gaussian_condition_similarity_constant_sigma(image_pairwise_distances, 10);
 
+    arma::vec sigma =  calculate_optimal_sigma(image_points, 30);
+
+    const auto image_similarities = \
+        calcualate_gaussian_condition_similarity(image_pairwise_distances, sigma);
+
+    double momentum = 0.5;
 
     const auto initial_grad = calculate_tsne_gradient(image_similarities, map_points);
     auto grad = initial_grad;
@@ -65,10 +69,26 @@ arma::mat run_tsne_optimization(
     };
 
     size_t iteration_number = 0;
+
+    arma::mat update(map_points.n_rows, map_points.n_cols, arma::fill::zeros);
+
     while (iteration_number < max_iterations && !is_gradient_close(grad)) {
-        map_points -= learning_rate * grad;
+        update = momentum * update + learning_rate * grad;
+
+        map_points -= update;
+
         grad = calculate_tsne_gradient(image_similarities, map_points);
+
         iteration_number++;
+
+        if ((iteration_number % 100) == 0 && (iteration_number > 0)) {
+            // learning_rate /= 1.;
+            std::cout << "loss: " << calculate_loss(image_points, map_points) << std::endl;
+        }
+
+        if (iteration_number > 250) {
+            momentum = 0.8;
+        }
     }
 
     return map_points;

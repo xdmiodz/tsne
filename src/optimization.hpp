@@ -46,5 +46,5 @@ arma::mat run_tsne_optimization(
         arma::mat initial_map_points,
         const size_t max_iterations=1000,
         const double eps=1e-6,
-        const double learning_rate=0.9
+        double learning_rate=100
     );
